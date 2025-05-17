@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIM Subdomains Status Tracker</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts: Outfit and Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+        }
+        body {
+            height: 100vh;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideInDown 0.8s ease-out;
+        }
+        .navbar-content {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .navbar h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+            margin-left: 15px;
+        }
+        .requirements-btn {
+            background: #8e44ad;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            transition: background 0.3s ease;
+            margin-left: auto;
+            margin-right: 15px;
+        }
+        .requirements-btn:hover {
+            background: #3498db;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            max-width: 1140px;
+            height: calc(100vh - 100px);
+            margin: 60px auto 0;
+            overflow-y: auto;
+            animation: fadeIn 1s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            flex: 1 0 auto;
+        }
+        .toggle-progress-btn {
+            background: #8e44ad;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            transition: background 0.3s ease, outline 0.2s ease;
+            margin-bottom: 10px;
+        }
+        .toggle-progress-btn:hover {
+            background: #3498db;
+        }
+        .toggle-progress-btn:focus-visible {
+            outline: 3px solid #3498db;
+            outline-offset: 2px;
+            border-radius: 5px;
+        }
+        .progress-container {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .progress-label {
+            display: block;
+            margin-bottom: 5px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+        .progress {
+            height: 24px;
+            border-radius: 12px;
+            background: #e9ecef;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            transition: width 0.6s ease;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+        }
+        .progress-bar.bg-success {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 0,
+                rgba(255, 255, 255, 0.15) 15px,
+                transparent 15px,
+                transparent 30px
+            );
+            background-size: 200% 100%;
+            animation: wave 8s linear infinite;
+        }
+        .progress-bar.bg-warning {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 0,
+                rgba(255, 255, 255, 0.15) 15px,
+                transparent 15px,
+                transparent 30px
+            );
+            background-size: 200% 100%;
+            animation: wave 8s linear infinite;
+        }
+        .progress-bar.bg-danger {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 0,
+                rgba(255, 255, 255, 0.15) 15px,
+                transparent 15px,
+                transparent 30px
+            );
+            background-size: 200% 100%;
+            animation: wave 8s linear infinite;
+        }
+        @keyframes wave {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .progress-bar.bg-success,
+            .progress-bar.bg-warning,
+            .progress-bar.bg-danger {
+                animation: none;
+                background-image: none;
+            }
+        }
+        .search-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .search-filter input, .search-filter select {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 6px;
+            transition: border-color 0.3s ease;
+        }
+        .search-filter input:focus, .search-filter select:focus {
+            border-color: #8e44ad;
+            outline: none;
+            box-shadow: 0 0 5px rgba(142, 68, 173, 0.3);
+        }
+        .search-filter input {
+            flex: 1;
+            min-width: 150px;
+        }
+        .search-filter select {
+            width: 120px;
+        }
+        .table {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            max-height: calc(100% - 150px);
+            overflow-y: auto;
+            margin: 0 auto;
+        }
+        .table th {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            padding: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .table th:hover {
+            background: linear-gradient(45deg, #2980b9, #6c3483);
+        }
+        .table th .sort-arrow {
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+        .table td {
+            padding: 8px;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .table th:first-child, .table td:first-child {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        .table th:nth-child(2), .table td:nth-child(2) {
+            text-align: left;
+        }
+        .table tr:hover td {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        .status-pending {
+            color: #dc3545;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+        .status-completed {
+            color: #28a745;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+        .status-pending:hover, .status-completed:hover {
+            color: #8e44ad;
+            text-decoration: none;
+        }
+        .subdomain-link {
+            text-decoration: none;
+            color: #2980b9;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .subdomain-link:hover {
+            color: #8e44ad;
+        }
+        .subdomain-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #8e44ad;
+            transition: width 0.3s ease;
+        }
+        .subdomain-link:hover::after {
+            width: 100%;
+        }
+        .pagination-footer {
+            position: relative;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 550;
+            width: 100%;
+        }
+        .pagination {
+            justify-content: center;
+            margin: 0;
+        }
+        .page-link {
+            color: #3498db;
+            border-radius: 5px;
+            margin: 0 3px;
+            transition: background 0.3s ease, color 0.3s ease;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        .page-link:hover {
+            background: #8e44ad;
+            color: white;
+        }
+        .page-item.active .page-link {
+            background: #3498db;
+            border-color: #3498db;
+            color: white;
+        }
+        .app-footer {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            font-size: 0.75rem;
+            position: sticky;
+            bottom: 0;
+            margin-top: auto;
+            z-index: 600;
+        }
+        .footer-link {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+        .footer-link:hover {
+            color: #8e44ad;
+            text-decoration: underline;
+        }
+        .modal-content {
+            font-family: 'Outfit', sans-serif;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        .modal-header {
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            padding: 15px 20px;
+        }
+        .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .modal-body {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            font-size: 0.9rem;
+            padding: 20px;
+        }
+        .modal-body ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+        .modal-footer {
+            border-top: none;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-footer .btn-secondary {
+            background: #6c757d;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            transition: background 0.3s ease;
+        }
+        .modal-footer .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .modal-footer .btn-primary {
+            background: #8e44ad;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            transition: background 0.3s ease;
+        }
+        .modal-footer .btn-primary:hover {
+            background: #3498db;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-100%); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @media (max-width: 600px) {
+            .navbar {
+                width: 100%;
+                padding: 10px;
+            }
+            .navbar-content {
+                max-width: 100%;
+            }
+            .navbar h1 {
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+            .requirements-btn {
+                font-size: 0.75rem;
+                padding: 5px 12px;
+                margin-right: 10px;
+            }
+            .container {
+                padding: 10px;
+                margin-top: 60px;
+                margin-bottom: 0;
+                max-width: 100%;
+            }
+            .toggle-progress-btn {
+                font-size: 0.75rem;
+                padding: 5px 12px;
+                margin-bottom: 8px;
+            }
+            .progress-container {
+                margin-bottom: 8px;
+            }
+            .progress-label {
+                font-size: 0.85rem;
+            }
+            .progress {
+                height: 20px;
+                border-radius: 10px;
+                margin-bottom: 8px;
+            }
+            .progress-bar {
+                font-size: 0.7rem;
+            }
+            .table {
+                max-height: calc(100% - 140px);
+            }
+            .table, .table th, .table td {
+                font-size: 0.75rem;
+            }
+            .table th, .table td {
+                padding: 6px;
+            }
+            .table th:nth-child(2), .table td:nth-child(2) {
+                text-align: left;
+            }
+            .search-filter {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .search-filter input, .search-filter select {
+                width: 100%;
+                padding: 5px;
+            }
+            .pagination-footer {
+                padding: 8px;
+            }
+            .page-link {
+                font-size: 0.7rem;
+            }
+            .app-footer {
+                font-size: 0.65rem;
+                padding: 6px;
+                margin-top: auto;
+            }
+            .footer-link {
+                font-size: 0.65rem;
+            }
+            .modal-dialog {
+                margin: 10px;
+            }
+            .modal-title {
+                font-size: 1rem;
+            }
+            .modal-body {
+                font-size: 0.8rem;
+                padding: 15px;
+            }
+            .modal-footer .btn-secondary, .modal-footer .btn-primary {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <h1>AIM Subdomains Status Tracker</h1>
+            <button class="btn btn-primary requirements-btn" data-bs-toggle="modal" data-bs-target="#requirementsModal">
+                Other Requirements →
+            </button>
+        </div>
+    </nav>
+    <div class="container">
+        <button class="btn btn-primary toggle-progress-btn">Show All Statuses</button>
+        <div class="progress-container">
+            <span class="progress-label">Completion: 0%</span>
+            <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Completion progress" aria-valuetext="0%"></div>
+            </div>
+        </div>
+        <div class="search-filter">
+            <input type="text" id="searchInput" placeholder="Search by subdomain..." class="form-control">
+            <select id="statusFilter" class="form-select">
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+        <table class="table table-bordered table-striped" id="subdomainTable">
+            <thead>
+                <tr>
+                    <th scope="col" data-sort="id" data-direction="asc">#</th>
+                    <th scope="col" data-sort="subdomain" data-direction="asc">Subdomain</th>
+                    <th scope="col" data-sort="status" data-direction="asc">Status</th>
+                </tr>
+            </thead>
+            <tbody id="subdomainBody">
+                <!-- Subdomains will be populated by JavaScript -->
+            </tbody>
+        </table>
+        <div class="pagination-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+    <footer class="app-footer">
+        © 2025 - Coded with ☕ & 🤓 by <a href="https://amigohub.africa" target="_blank" class="footer-link">Amigo Hub</a>'s geek squad
+    </footer>
+    <!-- Requirements Modal -->
+    <div class="modal fade" id="requirementsModal" tabindex="-1" aria-labelledby="requirementsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requirementsModalLabel">Other Requirements</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li>Call-To-Action button</li>
+                        <li>Social Media Accounts, AI and Chatbot Integration</li>
+                        <li>Internal Links</li>
+                        <li>Backlinks</li>
+                        <li>Downloads</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default subdomains array
+        const defaultSubdomains = [
+            { id: 1, subdomain: "accommodation.associated-movers.com", status: "Pending" },
+            { id: 2, subdomain: "advertisements.associated-movers.com", status: "Completed" },
+            { id: 3, subdomain: "agenda.associated-movers.com", status: "Pending" },
+            { id: 4, subdomain: "agri.associated-movers.com", status: "Pending" },
+            { id: 5, subdomain: "aimexposition.associated-movers.com", status: "Pending" },
+            { id: 6, subdomain: "aimmovers.associated-movers.com", status: "Pending" },
+            { id: 7, subdomain: "aimsports.associated-movers.com", status: "Pending" },
+            { id: 8, subdomain: "airfreight.associated-movers.com", status: "Pending" },
+            { id: 9, subdomain: "artexhibitions.associated-movers.com", status: "Pending" },
+            { id: 10, subdomain: "artgalleries.associated-movers.com", status: "Pending" },
+            { id: 11, subdomain: "assembly.associated-movers.com", status: "Pending" },
+            { id: 12, subdomain: "autoexpo.associated-movers.com", status: "Pending" },
+            { id: 13, subdomain: "b2bevent.associated-movers.com", status: "Pending" },
+            { id: 14, subdomain: "b2cevent.associated-movers.com", status: "Pending" },
+            { id: 15, subdomain: "blog.associated-movers.com", status: "Pending" },
+            { id: 16, subdomain: "booking.associated-movers.com", status: "Pending" },
+            { id: 17, subdomain: "booth.associated-movers.com", status: "Pending" },
+            { id: 18, subdomain: "breakdown.associated-movers.com", status: "Pending" },
+            { id: 19, subdomain: "broadcasting.associated-movers.com", status: "Pending" },
+            { id: 20, subdomain: "buildexpo.associated-movers.com", status: "Pending" },
+            { id: 21, subdomain: "business.associated-movers.com", status: "Pending" },
+            { id: 22, subdomain: "businessconference.associated-movers.com", status: "Pending" },
+            { id: 23, subdomain: "businesssolutions.associated-movers.com", status: "Pending" },
+            { id: 24, subdomain: "buyers.associated-movers.com", status: "Pending" },
+            { id: 25, subdomain: "careers.associated-movers.com", status: "Pending" },
+            { id: 26, subdomain: "cargo.associated-movers.com", status: "Pending" },
+            { id: 27, subdomain: "cargoservices.associated-movers.com", status: "Pending" },
+            { id: 28, subdomain: "cleanexpo.associated-movers.com", status: "Pending" },
+            { id: 29, subdomain: "clearance.associated-movers.com", status: "Pending" },
+            { id: 30, subdomain: "climaexpo.associated-movers.com", status: "Pending" },
+            { id: 31, subdomain: "concerts.associated-movers.com", status: "Pending" },
+            { id: 32, subdomain: "conference.associated-movers.com", status: "Pending" },
+            { id: 33, subdomain: "congress.associated-movers.com", status: "Pending" },
+            { id: 34, subdomain: "contractor.associated-movers.com", status: "Pending" },
+            { id: 35, subdomain: "convention.associated-movers.com", status: "Pending" },
+            { id: 36, subdomain: "corporate.associated-movers.com", status: "Pending" },
+            { id: 37, subdomain: "corporateevents.associated-movers.com", status: "Pending" },
+            { id: 38, subdomain: "corporatelogistics.associated-movers.com", status: "Pending" },
+            { id: 39, subdomain: "courier.associated-movers.com", status: "Pending" },
+            { id: 40, subdomain: "crating.associated-movers.com", status: "Pending" },
+            { id: 41, subdomain: "culturallogistics.associated-movers.com", status: "Pending" },
+            { id: 42, subdomain: "customs.associated-movers.com", status: "Pending" },
+            { id: 43, subdomain: "customsagents.associated-movers.com", status: "Pending" },
+            { id: 44, subdomain: "dairytechexpo.associated-movers.com", status: "Pending" },
+            { id: 45, subdomain: "dealers.associated-movers.com", status: "Pending" },
+            { id: 46, subdomain: "delegates.associated-movers.com", status: "Pending" },
+            { id: 47, subdomain: "delivery.associated-movers.com", status: "Pending" },
+            { id: 48, subdomain: "demo.associated-movers.com", status: "Pending" },
+            { id: 49, subdomain: "dentexpo.associated-movers.com", status: "Pending" },
+            { id: 50, subdomain: "deutschemesse.associated-movers.com", status: "Pending" },
+            { id: 51, subdomain: "dismantling.associated-movers.com", status: "Pending" },
+            { id: 52, subdomain: "display.associated-movers.com", status: "Pending" },
+            { id: 53, subdomain: "distributors.associated-movers.com", status: "Pending" },
+            { id: 54, subdomain: "documentation.associated-movers.com", status: "Pending" },
+            { id: 55, subdomain: "earlybird.associated-movers.com", status: "Pending" },
+            { id: 56, subdomain: "emptystorage.associated-movers.com", status: "Pending" },
+            { id: 57, subdomain: "eventdetails.associated-movers.com", status: "Pending" },
+            { id: 58, subdomain: "eventlogistik.associated-movers.com", status: "Pending" },
+            { id: 59, subdomain: "events.associated-movers.com", status: "Pending" },
+            { id: 60, subdomain: "eventsorganizers.associated-movers.com", status: "Pending" },
+            { id: 61, subdomain: "eventsvenue.associated-movers.com", status: "Pending" },
+            { id: 62, subdomain: "exhibitionfreighting.associated-movers.com", status: "Pending" },
+            { id: 63, subdomain: "exhibitions.associated-movers.com", status: "Pending" },
+            { id: 64, subdomain: "exhibitionsfreight.associated-movers.com", status: "Pending" },
+            { id: 65, subdomain: "exhibitionsshipments.associated-movers.com", status: "Pending" },
+            { id: 66, subdomain: "exhibitionsshipping.associated-movers.com", status: "Pending" },
+            { id: 67, subdomain: "exhibitionstransportlogistics.associated-movers.com", status: "Pending" },
+            { id: 68, subdomain: "exhibitionsvenue.associated-movers.com", status: "Pending" },
+            { id: 69, subdomain: "exhibitionsworldwide.associated-movers.com", status: "Pending" },
+            { id: 70, subdomain: "exhibitor.associated-movers.com", status: "Pending" },
+            { id: 71, subdomain: "exhibitorbooths.associated-movers.com", status: "Pending" },
+            { id: 72, subdomain: "exhibitors.associated-movers.com", status: "Pending" },
+            { id: 73, subdomain: "exhibits.associated-movers.com", status: "Pending" },
+            { id: 74, subdomain: "exhibitslabelling.associated-movers.com", status: "Pending" },
+            { id: 75, subdomain: "exhibitstransportation.associated-movers.com", status: "Pending" },
+            { id: 76, subdomain: "exhibitswarehouse.se.associated-movers.com", status: "Pending" },
+            { id: 77, subdomain: "exhibitswarehousing.associated-movers.com", status: "Pending" },
+            { id: 78, subdomain: "expo.associated-movers.com", status: "Pending" },
+            { id: 79, subdomain: "expocargo.associated-movers.com", status: "Pending" },
+            { id: 80, subdomain: "expocentre.associated-movers.com", status: "Pending" },
+            { id: 81, subdomain: "expofreight.associated-movers.com", status: "Pending" },
+            { id: 82, subdomain: "expokenya.ke.associated-movers.com", status: "Pending" },
+            { id: 83, subdomain: "expologistik.associated-movers.com", status: "Pending" },
+            { id: 84, subdomain: "exports.associated-movers.com", status: "Pending" },
+            { id: 85, subdomain: "expos.associated-movers.com", status: "Pending" },
+            { id: 86, subdomain: "exposervices.associated-movers.com", status: "Pending" },
+            { id: 87, subdomain: "exposition.associated-movers.com", status: "Pending" },
+            { id: 88, subdomain: "expositions.associated-movers.com", status: "Pending" },
+            { id: 89, subdomain: "expovenue.associated-movers.com", status: "Pending" },
+            { id: 90, subdomain: "fairs.associated-movers.com", status: "Pending" },
+            { id: 91, subdomain: "fairsevents.associated-movers.com", status: "Pending" },
+            { id: 92, subdomain: "fairsexpos.associated-movers.com", status: "Pending" },
+            { id: 93, subdomain: "farmtechexpo.associated-movers.com", status: "Pending" },
+            { id: 94, subdomain: "fashionexpo.associated-movers.com", status: "Pending" },
+            { id: 95, subdomain: "festival.associated-movers.com", status: "Pending" },
+            { id: 96, subdomain: "finearts.associated-movers.com", status: "Pending" },
+            { id: 97, subdomain: "foirexpo.associated-movers.com", status: "Pending" },
+            { id: 98, subdomain: "foirexposition.associated-movers.com", status: "Pending" },
+            { id: 99, subdomain: "foodkitchen.associated-movers.com", status: "Pending" },
+            { id: 100, subdomain: "foodtechexpo.associated-movers.com", status: "Pending" },
+            { id: 101, subdomain: "forklift.associated-movers.com", status: "Pending" },
+            { id: 102, subdomain: "forwarder.associated-movers.com", status: "Pending" },
+            { id: 103, subdomain: "forwarding.associated-movers.com", status: "Pending" },
+            { id: 104, subdomain: "global.associated-movers.com", status: "Pending" },
+            { id: 105, subdomain: "globalevent.associated-movers.com", status: "Pending" },
+            { id: 106, subdomain: "globalevents.associated-movers.com", status: "Pending" },
+            { id: 107, subdomain: "globalexhibitions.associated-movers.com", status: "Pending" },
+            { id: 108, subdomain: "globallogistics.associated-movers.com", status: "Pending" },
+            { id: 109, subdomain: "globalmeetings.associated-movers.com", status: "Pending" },
+            { id: 110, subdomain: "globalmesse.associated-movers.com", status: "Pending" },
+            { id: 111, subdomain: "golf.associated-movers.com", status: "Pending" },
+            { id: 112, subdomain: "hamburgmesse.associated-movers.com", status: "Pending" },
+            { id: 113, subdomain: "handling.associated-movers.com", status: "Pending" },
+            { id: 114, subdomain: "hannovermesse.associated-movers.com", status: "Pending" },
+            { id: 115, subdomain: "homeexpo.associated-movers.com", status: "Pending" },
+            { id: 116, subdomain: "hospitalityexpo.associated-movers.com", status: "Pending" },
+            { id: 117, subdomain: "hotelexpo.associated-movers.com", status: "Pending" },
+            { id: 118, subdomain: "imports.associated-movers.com", status: "Pending" },
+            { id: 119, subdomain: "industry.associated-movers.com", status: "Pending" },
+            { id: 120, subdomain: "industryevent.associated-movers.com", status: "Pending" },
+            { id: 121, subdomain: "industryinsights.associated-movers.com", status: "Pending" },
+            { id: 122, subdomain: "industryleaders.associated-movers.com", status: "Pending" },
+            { id: 123, subdomain: "industrytrends.associated-movers.com", status: "Pending" },
+            { id: 124, subdomain: "info.associated-movers.com", status: "Pending" },
+            { id: 125, subdomain: "installation.associated-movers.com", status: "Pending" },
+            { id: 126, subdomain: "keynotespeakers.associated-movers.com", status: "Pending" },
+            { id: 127, subdomain: "kicc.associated-movers.com", status: "Pending" },
+            { id: 128, subdomain: "konferenzlogistik.associated-movers.com", status: "Pending" },
+            { id: 129, subdomain: "kongresslogistik.associated-movers.com", status: "Pending" },
+            { id: 130, subdomain: "landingpage.associated-movers.com", status: "Pending" },
+            { id: 131, subdomain: "lifestyleexpo.associated-movers.com", status: "Pending" },
+            { id: 132, subdomain: "lightexpo.associated-movers.com", status: "Pending" },
+            { id: 133, subdomain: "liveevents.associated-movers.com", status: "Pending" },
+            { id: 134, subdomain: "livestream.associated-movers.com", status: "Pending" },
+            { id: 135, subdomain: "loading.associated-movers.com", status: "Pending" },
+            { id: 136, subdomain: "logistics.associated-movers.com", status: "Pending" },
+            { id: 137, subdomain: "market.associated-movers.com", status: "Pending" },
+            { id: 138, subdomain: "marketplace.associated-movers.com", status: "Pending" },
+            { id: 139, subdomain: "markettrends.associated-movers.com", status: "Pending" },
+            { id: 140, subdomain: "material.associated-movers.com", status: "Pending" },
+            { id: 141, subdomain: "materialhandling.associated-movers.com", status: "Pending" },
+            { id: 142, subdomain: "media.associated-movers.com", status: "Pending" },
+            { id: 143, subdomain: "medexpo.associated-movers.com", status: "Pending" },
+            { id: 144, subdomain: "meetings.associated-movers.com", status: "Pending" },
+            { id: 145, subdomain: "messecargo.associated-movers.com", status: "Pending" },
+            { id: 146, subdomain: "messedusseldorf cybersec expo.associated-movers.com", status: "Pending" },
+            { id: 147, subdomain: "messefrankfurt.associated-movers.com", status: "Pending" },
+            { id: 148, subdomain: "messelogistik.associated-movers.com", status: "Pending" },
+            { id: 149, subdomain: "messemunchen.associated-movers.com", status: "Pending" },
+            { id: 150, subdomain: "messespedition.associated-movers.com", status: "Pending" },
+            { id: 151, subdomain: "mice.associated-movers.com", status: "Pending" },
+            { id: 152, subdomain: "minexpo.associated-movers.com", status: "Pending" },
+            { id: 153, subdomain: "motorshow.associated-movers.com", status: "Pending" },
+            { id: 154, subdomain: "motorsports.associated-movers.com", status: "Pending" },
+            { id: 155, subdomain: "movein.associated-movers.com", status: "Pending" },
+            { id: 156, subdomain: "moveout.associated-movers.com", status: "Pending" },
+            { id: 157, subdomain: "movers.associated-movers.com", status: "Pending" },
+            { id: 158, subdomain: "moving.associated-movers.com", status: "Pending" },
+            { id: 159, subdomain: "movingexhibitiongoods.associated-movers.com", status: "Pending" },
+            { id: 160, subdomain: "museums.associated-movers.com", status: "Pending" },
+            { id: 161, subdomain: "museumsexhibitions.associated-movers.com", status: "Pending" },
+            { id: 162, subdomain: "network.associated-movers.com", status: "Pending" },
+            { id: 163, subdomain: "networking.associated-movers.com", status: "Pending" },
+            { id: 164, subdomain: "networkingevent.associated-movers.com", status: "Pending" },
+            { id: 165, subdomain: "newsletter.associated-movers.com", status: "Pending" },
+            { id: 166, subdomain: "newsroom.associated-movers.com", status: "Pending" },
+            { id: 167, subdomain: "official.associated-movers.com", status: "Pending" },
+            { id: 168, subdomain: "oilgasexpo.associated-movers.com", status: "Pending" },
+            { id: 169, subdomain: "onsite.associated-movers.com", status: "Pending" },
+            { id: 170, subdomain: "onsitelogistics.associated-movers.com", status: "Pending" },
+            { id: 171, subdomain: "onsitestorage.associated-movers.com", status: "Pending" },
+            { id: 172, subdomain: "organizers.associated-movers.com", status: "Pending" },
+            { id: 173, subdomain: "packaging.associated-movers.com", status: "Pending" },
+            { id: 174, subdomain: "packing.associated-movers.com", status: "Pending" },
+            { id: 175, subdomain: "packplastexpo.associated-movers.com", status: "Pending" },
+            { id: 176, subdomain: "pavilion.associated-movers.com", status: "Pending" },
+            { id: 177, subdomain: "pharmaexpo.associated-movers.com", status: "Pending" },
+            { id: 178, subdomain: "pickup.associated-movers.com", status: "Pending" },
+            { id: 179, subdomain: "plastexpo.associated-movers.com", status: "Pending" },
+            { id: 180, subdomain: "powerenergyexpo.associated-movers.com", status: "Pending" },
+            { id: 181, subdomain: "pressroom.associated-movers.com", status: "Pending" },
+            { id: 182, subdomain: "printpackexpo.associated-movers.com", status: "Pending" },
+            { id: 183, subdomain: "productlaunch.associated-movers.com", status: "Pending" },
+            { id: 184, subdomain: "projectlogistics.associated-movers.com", status: "Pending" },
+            { id: 185, subdomain: "regionalevent.associated-movers.com", status: "Pending" },
+            { id: 186, subdomain: "registration.associated-movers.com", status: "Pending" },
+            { id: 187, subdomain: "removals.associated-movers.com", status: "Pending" },
+            { id: 188, subdomain: "reservations.associated-movers.com", status: "Pending" },
+            { id: 189, subdomain: "roadshows.associated-movers.com", status: "Pending" },
+            { id: 190, subdomain: "schedule.associated-movers.com", status: "Pending" },
+            { id: 191, subdomain: "seafreight.associated-movers.com", status: "Pending" },
+            { id: 192, subdomain: "sellers.associated-movers.com", status: "Pending" },
+            { id: 193, subdomain: "seminars.associated-movers.com", status: "Pending" },
+            { id: 194, subdomain: "setup.associated-movers.com", status: "Pending" },
+            { id: 195, subdomain: "shippingdocumentation.associated-movers.com", status: "Pending" },
+            { id: 196, subdomain: "shippinglogistics.associated-movers.com", status: "Pending" },
+            { id: 197, subdomain: "show.associated-movers.com", status: "Pending" },
+            { id: 198, subdomain: "showcasing.associated-movers.com", status: "Pending" },
+            { id: 199, subdomain: "showfreight.associated-movers.com", status: "Pending" },
+            { id: 200, subdomain: "showfreighter.associated-movers.com", status: "Pending" },
+            { id: 201, subdomain: "showlogistics.associated-movers.com", status: "Pending" },
+            { id: 202, subdomain: "solarexpo.associated-movers.com", status: "Pending" },
+            { id: 203, subdomain: "speakers.associated-movers.com", status: "Pending" },
+            { id: 204, subdomain: "sporting.associated-movers.com", status: "Pending" },
+            { id: 205, subdomain: "sports.associated-movers.com", status: "Pending" },
+            { id: 206, subdomain: "sportsvenue.associated-movers.com", status: "Pending" },
+            { id: 207, subdomain: "summit.associated-movers.com", status: "Pending" },
+            { id: 208, subdomain: "symposia.associated-movers.com", status: "Pending" },
+            { id: 209, subdomain: "techexpo.associated-movers.com", status: "Pending" },
+            { id: 210, subdomain: "ticaretfuari.associated-movers.com", status: "Pending" },
+            { id: 211, subdomain: "ticaretfuarimerkezi.associated-movers.com", status: "Pending" },
+            { id: 212, subdomain: "tickets.associated-movers.com", status: "Pending" },
+            { id: 213, subdomain: "tradecentre.associated-movers.com", status: "Pending" },
+            { id: 214, subdomain: "tradeevents.associated-movers.com", status: "Pending" },
+            { id: 215, subdomain: "tradeexpos.associated-movers.com", status: "Pending" },
+            { id: 216, subdomain: "tradeexposition.associated-movers.com", status: "Pending" },
+            { id: 217, subdomain: "tradefaircentre.associated-movers.com", status: "Pending" },
+            { id: 218, subdomain: "tradefaireventslogistics.associated-movers.com", status: "Pending" },
+            { id: 219, subdomain: "tradefairs.associated-movers.com", status: "Pending" },
+            { id: 220, subdomain: "tradeshows.associated-movers.com", status: "Pending" },
+            { id: 221, subdomain: "venue.associated-movers.com", status: "Pending" },
+            { id: 222, subdomain: "venueevents.associated-movers.com", status: "Pending" },
+            { id: 223, subdomain: "venuelogistics.associated-movers.com", status: "Pending" },
+            { id: 224, subdomain: "watertechexpo.associated-movers.com", status: "Pending" },
+            { id: 225, subdomain: "winexpo.associated-movers.com", status: "Pending" },
+            { id: 226, subdomain: "workshop.associated-movers.com", status: "Pending" }
+        ];
+
+        // Load subdomains from localStorage or use default
+        let subdomains = JSON.parse(localStorage.getItem('subdomains')) || defaultSubdomains;
+
+        const itemsPerPage = 12;
+        let currentPage = 1;
+        let filteredSubdomains = subdomains;
+        let showAllStatuses = false;
+        let currentSortColumn = null;
+        let currentSortDirection = 'asc';
+
+        // Function to save subdomains to localStorage
+        function saveSubdomains() {
+            localStorage.setItem('subdomains', JSON.stringify(subdomains));
+        }
+
+        function updateProgressBar() {
+            const progressContainer = document.querySelector('.progress-container');
+            const totalCount = subdomains.length;
+            const completedCount = filteredSubdomains.filter(item => item.status === "Completed").length;
+            const pendingCount = filteredSubdomains.filter(item => item.status === "Pending").length;
+
+            if (showAllStatuses) {
+                progressContainer.innerHTML = `
+                    <span class="progress-label">Completed: ${(completedCount / totalCount * 100).toFixed(2)}% (${completedCount}/${totalCount})</span>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: ${(completedCount / totalCount * 100)}%;" aria-valuenow="${(completedCount / totalCount * 100).toFixed(2)}" aria-valuemin="0" aria-valuemax="100" aria-label="Completed subdomains progress" aria-valuetext="${(completedCount / totalCount * 100).toFixed(2)}%">${(completedCount / totalCount * 100).toFixed(2)}%</div>
+                    </div>
+                    <span class="progress-label">Pending: ${(pendingCount / totalCount * 100).toFixed(2)}% (${pendingCount}/${totalCount})</span>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: ${(pendingCount / totalCount * 100)}%;" aria-valuenow="${(pendingCount / totalCount * 100).toFixed(2)}" aria-valuemin="0" aria-valuemax="100" aria-label="Pending subdomains progress" aria-valuetext="${(pendingCount / totalCount * 100).toFixed(2)}%">${(pendingCount / totalCount * 100).toFixed(2)}%</div>
+                    </div>
+                `;
+            } else {
+                const percentage = (completedCount / totalCount) * 100;
+                progressContainer.innerHTML = `
+                    <span class="progress-label">Completion: ${percentage.toFixed(2)}% (${completedCount}/${totalCount})</span>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: ${percentage}%;" aria-valuenow="${percentage.toFixed(2)}" aria-valuemin="0" aria-valuemax="100" aria-label="Completion progress" aria-valuetext="${percentage.toFixed(2)}%">${percentage.toFixed(2)}%</div>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleProgressView() {
+            showAllStatuses = !showAllStatuses;
+            const toggleButton = document.querySelector('.toggle-progress-btn');
+            toggleButton.textContent = showAllStatuses ? 'Show Completed Only' : 'Show All Statuses';
+            updateProgressBar();
+        }
+
+        function sortSubdomains(column, direction) {
+            filteredSubdomains.sort((a, b) => {
+                let valueA, valueB;
+                switch (column) {
+                    case 'id':
+                        valueA = a.id;
+                        valueB = b.id;
+                        return direction === 'asc' ? valueA - valueB : valueB - valueA;
+                    case 'subdomain':
+                        valueA = a.subdomain.toLowerCase();
+                        valueB = b.subdomain.toLowerCase();
+                        return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+                    case 'status':
+                        valueA = a.status.toLowerCase();
+                        valueB = b.status.toLowerCase();
+                        return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueB);
+                }
+            });
+        }
+
+        function updateSortIndicators(column, direction) {
+            document.querySelectorAll('.table th').forEach(th => {
+                const thColumn = th.getAttribute('data-sort');
+                const arrow = th.querySelector('.sort-arrow');
+                if (thColumn === column) {
+                    arrow.textContent = direction === 'asc' ? '↑' : '↓';
+                } else if (arrow) {
+                    arrow.textContent = '';
+                }
+            });
+        }
+
+        function filterSubdomains() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredSubdomains = subdomains.filter(item => {
+                const matchesSearch = item.subdomain.toLowerCase().includes(searchQuery);
+                const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            if (currentSortColumn) {
+                sortSubdomains(currentSortColumn, currentSortDirection);
+            }
+
+            currentPage = 1; // Reset to first page on filter
+            displayPage(currentPage);
+            updateProgressBar();
+        }
+
+        function displayPage(page) {
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredSubdomains.slice(start, end);
+
+            const tbody = document.getElementById('subdomainBody');
+            tbody.innerHTML = '';
+
+            pageItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td><a href="http://${item.subdomain}" target="_blank" class="subdomain-link">${item.subdomain} <i class="bi bi-box-arrow-up-right"></i></a></td>
+                    <td><span class="status-${item.status.toLowerCase()}">${item.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updatePagination(page);
+        }
+
+        function updatePagination(currentPage) {
+            const totalPages = Math.ceil(filteredSubdomains.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    displayPage(i);
+                });
+                pagination.appendChild(li);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterSubdomains);
+        document.getElementById('statusFilter').addEventListener('change', filterSubdomains);
+        document.querySelector('.toggle-progress-btn').addEventListener('click', toggleProgressView);
+
+        // Sorting event listeners
+        document.querySelectorAll('.table th').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.getAttribute('data-sort');
+                let direction = th.getAttribute('data-direction');
+                
+                // Toggle direction if clicking the same column, otherwise default to ascending
+                if (currentSortColumn === column) {
+                    direction = direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    direction = 'asc';
+                }
+                
+                th.setAttribute('data-direction', direction);
+                currentSortColumn = column;
+                currentSortDirection = direction;
+
+                sortSubdomains(column, direction);
+                updateSortIndicators(column, direction);
+                currentPage = 1; // Reset to first page on sort
+                displayPage(currentPage);
+            });
+        });
+
+        // Initial page load
+        displayPage(currentPage);
+        updateProgressBar();
+    </script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
